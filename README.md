@@ -18,6 +18,10 @@ gdweb
 
 This serves the current directory over HTTPS on port 8443. The server prints local and network URLs so you can open the game on your phone, tablet, or another computer.
 
+### QR codes
+
+Visit `/qr` (e.g. `https://localhost:8443/qr`) for a page with tabbed QR codes for each address. Scan the appropriate QR code with your phone to open the game without typing the URL.
+
 ### Options
 
 | Flag   | Default | Description                    |

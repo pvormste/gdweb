@@ -50,13 +50,14 @@ func main() {
 	}
 
 	addr := fmt.Sprintf("%s:%d", *host, *port)
-	srv, err := server.New(absDir, certPEM, keyPEM, addr)
+	urls := buildURLs(*port, network.LocalIPs())
+	srv, err := server.New(absDir, certPEM, keyPEM, addr, urls)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "gdweb: %v\n", err)
 		os.Exit(1)
 	}
 
-	printBanner(absDir, *port, network.LocalIPs())
+	printBanner(absDir, *port, network.LocalIPs(), urls)
 
 	if *open {
 		go openBrowser(*port)
@@ -76,13 +77,24 @@ func main() {
 	}
 }
 
-func printBanner(serveDir string, port int, localIPs []net.IP) {
+func buildURLs(port int, localIPs []net.IP) []string {
+	urls := []string{"https://localhost:" + fmt.Sprint(port)}
+	for _, ip := range localIPs {
+		urls = append(urls, fmt.Sprintf("https://%s:%d", ip.String(), port))
+	}
+	return urls
+}
+
+func printBanner(serveDir string, port int, localIPs []net.IP, urls []string) {
 	fmt.Println("gdweb - Godot Web Export Server")
 	fmt.Printf("Serving:  %s\n", serveDir)
 	fmt.Printf("Port:     %d\n\n", port)
 	fmt.Println("  Local:   https://localhost:" + fmt.Sprint(port))
 	for _, ip := range localIPs {
 		fmt.Printf("  Network: https://%s:%d\n", ip.String(), port)
+	}
+	if len(urls) > 0 {
+		fmt.Printf("\n  QR codes: %s/qr\n", urls[0])
 	}
 	fmt.Println("\nNote: Self-signed certificate. Accept the browser warning to proceed.")
 	fmt.Println("Press Ctrl+C to stop.")

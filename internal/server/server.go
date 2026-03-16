@@ -22,7 +22,8 @@ func crossOriginHeaders(h http.Handler) http.Handler {
 }
 
 // New creates an HTTPS server that serves files from dir with Godot-required headers.
-func New(dir string, certPEM, keyPEM []byte, addr string) (*http.Server, error) {
+// urls is the list of full URLs (e.g. https://localhost:8443) for the /qr page.
+func New(dir string, certPEM, keyPEM []byte, addr string, urls []string) (*http.Server, error) {
 	cert, err := tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
 		return nil, err
@@ -33,7 +34,11 @@ func New(dir string, certPEM, keyPEM []byte, addr string) (*http.Server, error) 
 		return nil, err
 	}
 
-	handler := crossOriginHeaders(http.FileServer(http.Dir(absDir)))
+	mux := http.NewServeMux()
+	mux.Handle("/qr", qrHandler(urls))
+	mux.Handle("/qr/", qrHandler(urls))
+	mux.Handle("/", crossOriginHeaders(http.FileServer(http.Dir(absDir))))
+	handler := mux
 
 	return &http.Server{
 		Addr:    addr,
